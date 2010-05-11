@@ -1,31 +1,27 @@
 <?php
+/**
+ * DokuWiki Plugin editsections (Action Component)
+ *
+ * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
+ * @author  Christophe Drevet <dr4ke@dr4ke.net>
+ */
 
 // must be run within Dokuwiki
-if(!defined('DOKU_INC')) die();
+if (!defined('DOKU_INC')) die();
 
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'action.php');
+if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
+if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
+if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
-class action_plugin_editsections extends DokuWiki_Action_Plugin {
-	
-	function getInfo(){
-		return array(
-			'author' => 'Ben Coburn',
-			'email'  => 'btcoburn@silicodon.net',
-			'date'   => '2006-05-23',
-			'name'   => 'Edit Section Reorganizer',
-			'desc'   => 'Moves edit section buttons up to the heading they originated from. '.
-						'Configurable for nested (hierarchical) or flat edit sections. '.
-						'Requires the development version of DokuWiki from 2006-05-23 or a later release.',
-			'url'    => 'http://source.silicodon.net/releases/dokuwiki-plugins/edit-section-reorganizer/editsections.tgz',
-			);
-	}
-	
+require_once DOKU_PLUGIN.'action.php';
+
+class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
+
 	function register(&$controller) {
 		$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections');
 		$controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_addconf');
 	}
-	
+
     function _addconf(&$event, $ags) {
         // add conf to JSINFO exported variable
         global $JSINFO;
@@ -75,5 +71,6 @@ class action_plugin_editsections extends DokuWiki_Action_Plugin {
 		$edits[max($last-1,0)][1][1] = 0;  // set new last section
 		$edits[$last][1][0] = -1; // hide old last section
 	}
-	
 }
+
+// vim:ts=4:sw=4:et:enc=utf-8:
