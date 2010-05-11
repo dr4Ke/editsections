@@ -23,8 +23,15 @@ class action_plugin_editsections extends DokuWiki_Action_Plugin {
 	
 	function register(&$controller) {
 		$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections');
+		$controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_addconf');
 	}
 	
+    function _addconf(&$event, $ags) {
+        // add conf to JSINFO exported variable
+        global $JSINFO;
+        $JSINFO['es_order_type'] = $this->getConf('order_type');
+    }
+
 	function rewrite_sections(&$event, $ags) {
 		// get the instructions list from the handler
 		$calls =& $event->data->calls;
