@@ -46,16 +46,16 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		//dbglog($calls);
 		// fake section inserted in first position in order to have an edit button before the first section
 		$fakesection = array( array( 'header',				// header entry
-		                              array ( ' ',			// text
-		                                      0,			// level
-		                                      1),			// start
-		                              1),				// start
+		                              array ( ' ',			// juste a space, not shown in the final page
+		                                      0,			// level 0 since this is not a real header
+		                                      1),			// start : will be overwritten in the following loop
+		                              1),				// start : will be overwritten in the following loop
 		                      array ( 'section_open',			// section_open entry
-		                              array(1),				// level
-		                              1),				// start
+		                              array(0),				// level
+		                              1),				// start : will be overwritten in the following loop
 		                      array ( 'section_close',			// section_close entry
 		                              array(),				//
-		                              33)				// end
+		                              33)				// end : will be overwritten in the following loop
 		);
 		$calls = array_merge($fakesection, $calls);
 		// indexes of preceding section initialized to the fake section
@@ -67,6 +67,9 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 				// skip fake section
 				continue;
 			}
+			// move values to the preceding section
+			// this way, the edit button will edit the following section
+			// instead of the preceding one.
 			if ($value[0] === 'header') {
 				$calls[$header_index][1][2] = $value[1][2];
 				$calls[$header_index][2] = $value[2];
