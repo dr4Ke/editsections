@@ -30,14 +30,11 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
     }
 
     function _editbutton(&$event, $param) {
-        // FIXME: Insert plugin name
-        if ($event->data['target'] !== 'plugin_editsections') {
-            return;
+        if ($event->data['target'] === 'section') {
+		// change section name for the button tooltip and edit summary
+		//$event->data['name'] = $this->getLang('section_edit_nested');
+		$event->data['name'] = 'Edit';
         }
-
-        // FIXME: Add lang field to your lang files
-        //$event->data['name'] = $this->getLang('sectioneditname');
-        $event->data['name'] = 'sectioneditname';
     }
 
 	function rewrite_sections(&$event, $ags) {
