@@ -31,7 +31,6 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 
     function _editbutton(&$event, $param) {
         // FIXME: Insert plugin name
-dbglog($event->data, '_editbutton call');
         if ($event->data['target'] !== 'plugin_editsections') {
             return;
         }
@@ -47,7 +46,7 @@ dbglog($event->data, '_editbutton call');
 		$edits = array();
 		$order = $this->getConf('order_type');
 		
-		dbglog($calls);
+		//dbglog($calls);
 		// fake section inserted in first position in order to have an edit button before the first section
 		$fakesection = array( array( 'header',				// header entry
 		                              array ( ' ',			// text
@@ -85,7 +84,7 @@ dbglog($event->data, '_editbutton call');
 				$s_close_index = $index;
 			}
 		}
-		dbglog($calls, 'calls');
+		//dbglog($calls, 'calls');
 		// scan instructions for edit sections
 		$size = count($calls);
 		for ($i=0; $i<$size; $i++) {
