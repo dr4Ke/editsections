@@ -20,6 +20,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 	function register(&$controller) {
 		$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections');
 		$controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_addconf');
+		$controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, '_editbutton');
 	}
 
     function _addconf(&$event, $ags) {
@@ -28,12 +29,63 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
         $JSINFO['es_order_type'] = $this->getConf('order_type');
     }
 
+    function _editbutton(&$event, $param) {
+        // FIXME: Insert plugin name
+dbglog($event->data, '_editbutton call');
+        if ($event->data['target'] !== 'plugin_editsections') {
+            return;
+        }
+
+        // FIXME: Add lang field to your lang files
+        //$event->data['name'] = $this->getLang('sectioneditname');
+        $event->data['name'] = 'sectioneditname';
+    }
+
 	function rewrite_sections(&$event, $ags) {
 		// get the instructions list from the handler
 		$calls =& $event->data->calls;
 		$edits = array();
 		$order = $this->getConf('order_type');
 		
+		dbglog($calls);
+		// fake section inserted in first position in order to have an edit button before the first section
+		$fakesection = array( array( 'header',				// header entry
+		                              array ( ' ',			// text
+		                                      0,			// level
+		                                      1),			// start
+		                              1),				// start
+		                      array ( 'section_open',			// section_open entry
+		                              array(1),				// level
+		                              1),				// start
+		                      array ( 'section_close',			// section_close entry
+		                              array(),				//
+		                              33)				// end
+		);
+		$calls = array_merge($fakesection, $calls);
+		// indexes of preceding section initialized to the fake section
+		$header_index = 0;
+		$s_open_index = 1;
+		$s_close_index = 2;
+		foreach( $calls as $index => $value ) {
+			if ($index < 3) {
+				// skip fake section
+				continue;
+			}
+			if ($value[0] === 'header') {
+				$calls[$header_index][1][2] = $value[1][2];
+				$calls[$header_index][2] = $value[2];
+				$header_index = $index;
+			}
+			if ($value[0] === 'section_open') {
+				$calls[$s_open_index][2] = $value[2];
+				$s_open_index = $index;
+			}
+			if ($value[0] === 'section_close') {
+				$calls[$s_close_index][2] = $value[2];
+				$s_close_index = $index;
+			}
+		}
+		dbglog($calls, 'calls');
 		// scan instructions for edit sections
 		$size = count($calls);
 		for ($i=0; $i<$size; $i++) {
