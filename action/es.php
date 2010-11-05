@@ -20,9 +20,17 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 	var $sections;
 
 	function register(&$controller) {
-		$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections');
+		$doku_version = getVersionData();
+		dbglog($doku_version, 'doku version');
+		if ( preg_match('/201.-/', $doku_version['date']) > 0 ) {
+			// 2010 or later version
+			$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections');
+			$controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, '_editbutton');
+		} else {
+			// 2009 or earlier version
+			$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections_legacy');
+		}
 		$controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_addconf');
-		$controller->register_hook('HTML_SECEDIT_BUTTON', 'BEFORE', $this, '_editbutton');
 	}
 
     function _addconf(&$event, $ags) {
@@ -160,6 +168,51 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		}
 		//dbglog($calls, 'calls after computing');
 	}
+
+        function rewrite_sections_legacy(&$event, $ags) {
+                // get the instructions list from the handler
+                $calls =& $event->data->calls;
+                $edits = array();
+                $order = $this->getConf('order_type');
+
+                // scan instructions for edit sections
+                $size = count($calls);
+                for ($i=0; $i<$size; $i++) {
+                        if ($calls[$i][0]=='section_edit') {
+                                $edits[] =& $calls[$i];
+                        }
+                }
+
+                // rewrite edit section instructions
+                $last = max(count($edits)-1,0);
+                for ($i=0; $i<=$last; $i++) {
+                        $end = 0;
+                        // get data to move
+                        $start = $edits[min($i+1,$last)][1][0];
+                        $level = $edits[min($i+1,$last)][1][2];
+                        $name  = $edits[min($i+1,$last)][1][3];
+                        // find the section end point
+                        if ($order) {
+                                $finger = $i+2;
+                                while (isset($edits[$finger]) && $edits[$finger][1][2]>$level) {
+                                        $finger++;
+                                }
+                                if (isset($edits[$finger])) {
+                                        $end = $edits[$finger][1][0]-1;
+                                }
+                        } else {
+                                $end = $edits[min($i+1,$last)][1][1];
+                        }
+                        // put the data back where it belongs
+                        $edits[$i][1][0] = $start;
+                        $edits[$i][1][1] = $end;
+                        $edits[$i][1][2] = $level;
+                        $edits[$i][1][3] = $name;
+                }
+                $edits[max($last-1,0)][1][1] = 0;  // set new last section
+                $edits[$last][1][0] = -1; // hide old last section
+        }
+
 }
 
 // vim:ts=4:sw=4:et:enc=utf-8:
