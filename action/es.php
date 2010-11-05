@@ -17,6 +17,8 @@ require_once DOKU_PLUGIN.'action.php';
 
 class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 
+	var $sections;
+
 	function register(&$controller) {
 		$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections');
 		$controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_addconf');
@@ -30,10 +32,32 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
     }
 
     function _editbutton(&$event, $param) {
+	$order = $this->getConf('order_type');
+//dbglog($event->data, 'edit section button data');
         if ($event->data['target'] === 'section') {
-		// change section name for the button tooltip and edit summary
-		//$event->data['name'] = $this->getLang('section_edit_nested');
-		$event->data['name'] = 'Edit';
+		$ind = $event->data['secid'];
+		// Compute new values
+		$last_ind = count($this->sections) - 1;
+		$start = $this->sections[$ind]['start'];
+		if ( $order === 0 ) {
+			// flat editing
+			$event->data['range'] = strval($start).'-'.strval($this->sections[$ind]['end']);
+			$event->data['name'] = $this->sections[$ind]['name'];
+		} elseif ( $order === 1 ) {
+			// search end of nested section editing
+			$end_ind = $ind;
+			while ( ($end_ind + 1 <= $last_ind) and ($this->sections[$end_ind + 1]['level'] > $this->sections[$ind]['level']) ) {
+				$end_ind++;
+			}
+			$event->data['range'] = strval($start).'-'.strval($this->sections[$end_ind]['end']);
+			$event->data['name'] = $this->sections[$ind]['name'];
+			if ($end_ind > $ind) {
+				$event->data['name'] .= ' -> '.$this->sections[$end_ind]['name'];
+			}
+		} else {
+		//dbglog('ERROR: section editing type unknown ('.$order.')');
+		}
+	//dbglog($event->data, 'edit section button data after');
         }
     }
 
@@ -43,7 +67,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		$edits = array();
 		$order = $this->getConf('order_type');
 		
-		//dbglog($calls);
+		//dbglog($calls, 'calls before computing');
 		// fake section inserted in first position in order to have an edit button before the first section
 		$fakesection = array( array( 'header',				// header entry
 		                              array ( ' ',			// juste a space, not shown in the final page
@@ -55,72 +79,86 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		                              1),				// start : will be overwritten in the following loop
 		                      array ( 'section_close',			// section_close entry
 		                              array(),				//
-		                              33)				// end : will be overwritten in the following loop
+		                              1)				// end : will be overwritten in the following loop
 		);
 		$calls = array_merge($fakesection, $calls);
-		// indexes of preceding section initialized to the fake section
-		$header_index = 0;
-		$s_open_index = 1;
-		$s_close_index = 2;
+		// store all sections in a separate array to compute their start, end...
+		$this->sections = array();
+		$count = 0;
 		foreach( $calls as $index => $value ) {
-			if ($index < 3) {
-				// skip fake section
-				continue;
-			}
-			// move values to the preceding section
-			// this way, the edit button will edit the following section
-			// instead of the preceding one.
 			if ($value[0] === 'header') {
-				$calls[$header_index][1][2] = $value[1][2];
-				$calls[$header_index][2] = $value[2];
-				$header_index = $index;
+				$count += 1;
+				$this->sections[] = array( 'level' => $value[1][1],
+				                     'start' => $value[2],
+				                     'name' => $value[1][0],
+				                     'header' => $index );
+			//dbglog('Section '.($count - 1));
+			//dbglog(' level '.$this->sections[$count - 1]['level']);
+			//dbglog(' start '.$this->sections[$count - 1]['start']);
+			//dbglog(' header index: '.$this->sections[$count - 1]['header']);
 			}
 			if ($value[0] === 'section_open') {
-				$calls[$s_open_index][2] = $value[2];
-				$s_open_index = $index;
+				if ($value[1][0] !== $this->sections[$count - 1]['level']) {
+				//dbglog(' ERROR: section level different in section_open ('.$value[1][0].') and header ('.$this->sections[$count - 1]['level'].')');
+				}
+				if ($value[2] !== $this->sections[$count - 1]['start']) {
+				//dbglog(' ERROR: section start different in section_open ('.$value[2].') and header ('.$this->sections[$count - 1]['start'].')');
+				}
+				$this->sections[$count - 1]['open'] = $index;
+			//dbglog(' open index: '.$this->sections[$count - 1]['open']);
 			}
 			if ($value[0] === 'section_close') {
-				$calls[$s_close_index][2] = $value[2];
-				$s_close_index = $index;
+				$this->sections[$count - 1]['end'] = $value[2];
+				$this->sections[$count - 1]['close'] = $index;
+			//dbglog(' end of section: '.$this->sections[$count - 1]['end']);
+			//dbglog(' close index: '.$this->sections[$count - 1]['close']);
 			}
 		}
-		//dbglog($calls, 'calls');
-		// scan instructions for edit sections
-		$size = count($calls);
-		for ($i=0; $i<$size; $i++) {
-			if ($calls[$i][0]=='section_edit') {
-				$edits[] =& $calls[$i];
+	//dbglog($this->sections, 'sections');
+		// Compute new values
+		$h_ind = -1; // header index
+		$o_ind = -1; // open section index
+		$c_ind = -1; // close section index
+		$last_ind = count($this->sections) - 1;
+		foreach( $this->sections as $index => $value ) {
+			// set values in preceding header
+			if ( $h_ind >= 0 ) {
+				// set start of section
+				$calls[$h_ind][1][2] = $value['start'];
+				$calls[$h_ind][2] = $value['start'];
 			}
-		}
-		
-		// rewrite edit section instructions
-		$last = max(count($edits)-1,0);
-		for ($i=0; $i<=$last; $i++) {
-			$end = 0;
-			// get data to move
-			$start = $edits[min($i+1,$last)][1][0];
-			$level = $edits[min($i+1,$last)][1][2];
-			$name  = $edits[min($i+1,$last)][1][3];
-			// find the section end point
-			if ($order) {
-				$finger = $i+2;
-				while (isset($edits[$finger]) && $edits[$finger][1][2]>$level) {
-					$finger++;
-				}
-				if (isset($edits[$finger])) {
-					$end = $edits[$finger][1][0]-1;
-				}
-			} else {
-				$end = $edits[min($i+1,$last)][1][1];
+			// set values in preceding section_open
+			if ( $o_ind >= 0 ) {
+				// set start of section
+				$calls[$o_ind][2] = $value['start'];
 			}
-			// put the data back where it belongs
-			$edits[$i][1][0] = $start;
-			$edits[$i][1][1] = $end;
-			$edits[$i][1][2] = $level;
-			$edits[$i][1][3] = $name;
+			// set values in preceding section_close
+			if ( $c_ind >= 0 ) {
+				// set end of section
+				$calls[$c_ind][2] = $value['end'];
+			}
+			// store indexes
+			$h_ind = $value['header'];
+			$o_ind = $value['open'];
+			$c_ind = $value['close'];
 		}
-		$edits[max($last-1,0)][1][1] = 0;  // set new last section
-		$edits[$last][1][0] = -1; // hide old last section
+		// Now, set values for the last section start = end = last byte of the page
+		// If not set, the last edit button disappear and the last section can't be edited
+		// without editing entire page
+		if ( $h_ind >= 0 ) {
+			// set start of section
+			$calls[$h_ind][1][2] = $this->sections[$last_ind][end];
+			$calls[$h_ind][2] = $this->sections[$last_ind][end];
+		}
+		if ( $o_ind >= 0 ) {
+			// set start of section
+			$calls[$o_ind][2] = $this->sections[$last_ind][end];
+		}
+		if ( $c_ind >= 0 ) {
+			// set end of section
+			$calls[$c_ind][2] = $this->sections[$last_ind][end];
+		}
+		//dbglog($calls, 'calls after computing');
 	}
 }
 
