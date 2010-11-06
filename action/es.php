@@ -14,6 +14,7 @@ if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
 if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
 require_once DOKU_PLUGIN.'action.php';
+include_once DOKU_INC.'inc/infoutils.php';
 
 class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 
