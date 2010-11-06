@@ -48,10 +48,10 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		// Compute new values
 		$last_ind = count($this->sections) - 1;
 		$start = $this->sections[$ind]['start'];
+		$event->data['name'] = $this->sections[$ind]['name'];
 		if ( $order === 0 ) {
 			// flat editing
 			$event->data['range'] = strval($start).'-'.strval($this->sections[$ind]['end']);
-			$event->data['name'] = $this->sections[$ind]['name'];
 		} elseif ( $order === 1 ) {
 			// search end of nested section editing
 			$end_ind = $ind;
