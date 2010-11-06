@@ -64,7 +64,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 				$event->data['name'] .= ' -> '.$this->sections[$end_ind]['name'];
 			}
 		} else {
-		//dbglog('ERROR: section editing type unknown ('.$order.')');
+			dbglog('ERROR (plugin editsections): section editing type unknown ('.$order.')');
 		}
 	//dbglog($event->data, 'edit section button data after');
         }
