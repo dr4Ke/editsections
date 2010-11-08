@@ -4,7 +4,8 @@
  * @author Christophe Drevet <christophe.drevet@gmail.com>
  */
 addInitEvent(function(){
-    var class_regexp = new RegExp('level([1-5])');
+    // detect header and its level
+    var class_regexp = new RegExp('H([1-5])');
     var btns = getElementsByClass('btn_secedit',document,'form');
     for(var i=0; i<btns.length; i++){
         // Remove existing mouseover events
@@ -13,30 +14,35 @@ addInitEvent(function(){
             removeEvent(btns[i],'mouseover',btnhdls[btnhdl]);
         }
         addEvent(btns[i],'mouseover',function(e){
-            var tgt = e.target;
-            if(tgt.form) tgt = tgt.form;
-            // reach the DIV 'secedit' from its child form
-            tgt = tgt.parentNode.nextSibling;
+            var tgt = e.target.form.parentNode;
             tgtlvl = '0';
             // walk in all the nodes
             while(tgt != null){
-                // search for all 'level?' DIVs
-                if((tgt.tagName == 'DIV')&&(class_regexp.test(tgt.className) == true)){
-                    if(JSINFO['es_order_type'] == '0'){
-                        // flat
-                        tgt.className += ' section_highlight';
-                        break;
-                    } else {
-                        // nested
-                        if(tgtlvl == '0'){
+                if(typeof tgt.className !== 'undefined') {
+                    //(class_regexp.test(tgt.className) == true)){
+                    if(tgtlvl === '0') {
+                        if (class_regexp.test(tgt.tagName) == true){
                             // We get the starting level
-                            tgtlvl = class_regexp.exec(tgt.className)[1];
-                        } else {
-                            // Break the loop if the level is lower than the starting level
-                            if(class_regexp.exec(tgt.className)[1] <= tgtlvl) break;
+                            tgtlvl = class_regexp.exec(tgt.tagName)[1];
                         }
-                        tgt.className += ' section_highlight';
+                    } else {
+                        if(JSINFO['es_order_type'] == '0'){
+                            // flat : stop at the next header
+                            if (class_regexp.test(tgt.tagName) == true) {
+                                break;
+                            }
+                        } else {
+                            // nested
+                            if(tgtlvl !== '0'){
+                                // Break the loop if the level is lower than the starting level
+                                if((class_regexp.test(tgt.tagName) == true)&&(class_regexp.exec(tgt.tagName)[1] <= tgtlvl)) {
+                                    break;
+                                }
+                            }
+                        }
                     }
+                    // highlight this element
+                    tgt.className += ' section_highlight';
                 }
                 tgt = tgt.nextSibling;
             }
