@@ -43,6 +43,10 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
     function _editbutton(&$event, $param) {
 	$order = $this->getConf('order_type');
 //dbglog($event->data, 'edit section button data');
+	if (count($this->sections) === 0) {
+		dbglog('cache in use, don\'t change editbutton values');
+		return;
+	}
         if ($event->data['target'] === 'section') {
 		$ind = $event->data['secid'];
 		// Compute new values
