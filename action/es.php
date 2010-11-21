@@ -77,7 +77,6 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 				$end_ind++;
 			}
 			$event->data['range'] = strval($start).'-'.strval($this->sections[$end_ind]['end']);
-			$event->data['name'] = $this->sections[$ind]['name'];
 			if ($end_ind > $ind) {
 				$event->data['name'] .= ' -> '.$this->sections[$end_ind]['name'];
 			}
