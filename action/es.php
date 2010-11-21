@@ -22,7 +22,6 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 
 	function register(&$controller) {
 		$doku_version = getVersionData();
-		dbglog($doku_version, 'doku version');
 		if ( preg_match('/201.-/', $doku_version['date']) > 0 ) {
 			// 2010 or later version
 			$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections');
@@ -48,7 +47,6 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
     function _editbutton(&$event, $param) {
 	dbglog('HTML_SECEDIT_BUTTON hook', 'editsections plugin');
 	$order = $this->getConf('order_type');
-//dbglog($event->data, 'edit section button data');
 	if (count($this->sections) === 0) {
 		dbglog('cache in use, reset edit section name');
 		// When the page is in cache, the sections are not preprocessed and
@@ -83,7 +81,6 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		} else {
 			dbglog('ERROR (plugin editsections): section editing type unknown ('.$order.')');
 		}
-	//dbglog($event->data, 'edit section button data after');
         }
     }
 
@@ -102,7 +99,6 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		$edits = array();
 		$order = $this->getConf('order_type');
 		
-		//dbglog($calls, 'calls before computing');
 		// fake section inserted in first position in order to have an edit button before the first section
 		$fakesection = array( array( 'header',				// header entry
 		                              array ( ' ',			// juste a space, not shown in the final page
@@ -127,29 +123,19 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 				                     'start' => $value[2],
 				                     'name' => $value[1][0],
 				                     'header' => $index );
-			//dbglog('Section '.($count - 1));
-			//dbglog(' level '.$this->sections[$count - 1]['level']);
-			//dbglog(' start '.$this->sections[$count - 1]['start']);
-			//dbglog(' header index: '.$this->sections[$count - 1]['header']);
 			}
 			if ($value[0] === 'section_open') {
 				if ($value[1][0] !== $this->sections[$count - 1]['level']) {
-				//dbglog(' ERROR: section level different in section_open ('.$value[1][0].') and header ('.$this->sections[$count - 1]['level'].')');
 				}
 				if ($value[2] !== $this->sections[$count - 1]['start']) {
-				//dbglog(' ERROR: section start different in section_open ('.$value[2].') and header ('.$this->sections[$count - 1]['start'].')');
 				}
 				$this->sections[$count - 1]['open'] = $index;
-			//dbglog(' open index: '.$this->sections[$count - 1]['open']);
 			}
 			if ($value[0] === 'section_close') {
 				$this->sections[$count - 1]['end'] = $value[2];
 				$this->sections[$count - 1]['close'] = $index;
-			//dbglog(' end of section: '.$this->sections[$count - 1]['end']);
-			//dbglog(' close index: '.$this->sections[$count - 1]['close']);
 			}
 		}
-	//dbglog($this->sections, 'sections');
 		// Compute new values
 		$h_ind = -1; // header index
 		$o_ind = -1; // open section index
@@ -193,7 +179,6 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 			// set end of section
 			$calls[$c_ind][2] = $this->sections[$last_ind][end];
 		}
-		//dbglog($calls, 'calls after computing');
 	}
 
         function rewrite_sections_legacy(&$event, $ags) {
