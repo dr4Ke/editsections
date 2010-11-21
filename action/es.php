@@ -156,18 +156,18 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		$c_ind = -1; // close section index
 		$last_ind = count($this->sections) - 1;
 		foreach( $this->sections as $index => $value ) {
-			// set values in preceding header
+			// set values in previous header
 			if ( $h_ind >= 0 ) {
 				// set start of section
 				$calls[$h_ind][1][2] = $value['start'];
 				$calls[$h_ind][2] = $value['start'];
 			}
-			// set values in preceding section_open
+			// set values in previous section_open
 			if ( $o_ind >= 0 ) {
 				// set start of section
 				$calls[$o_ind][2] = $value['start'];
 			}
-			// set values in preceding section_close
+			// set values in previous section_close
 			if ( $c_ind >= 0 ) {
 				// set end of section
 				$calls[$c_ind][2] = $value['end'];
