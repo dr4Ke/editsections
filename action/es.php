@@ -49,7 +49,15 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 	$order = $this->getConf('order_type');
 //dbglog($event->data, 'edit section button data');
 	if (count($this->sections) === 0) {
-		dbglog('cache in use, don\'t change editbutton values');
+		dbglog('cache in use, reset edit section name');
+		// When the page is in cache, the sections are not preprocessed and
+		// existing section names are useless: they reference the next section
+		// so, we replace them by a section number
+		if ( preg_match('/[0-9]$/', $event->data['range']) > 0 ) {
+			$event->data['name'] = 'section '.$event->data['secid'];
+		} else {
+			$event->data['name'] = '';
+		}
 		return;
 	}
         if ($event->data['target'] === 'section') {
