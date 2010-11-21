@@ -6,5 +6,5 @@
  */
 
 
-$meta['order_type'] = array('multichoice','_choices' => array(0,1));
+$meta['order_type'] = array('multichoice','_choices' => array("flat","nested"));
 

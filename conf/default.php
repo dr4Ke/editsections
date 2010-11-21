@@ -5,4 +5,4 @@
  * @author Christophe Drevet <dr4ke@dr4ke.net>
  */
 
-$conf['order_type'] = 1;
+$conf['order_type'] = "flat";

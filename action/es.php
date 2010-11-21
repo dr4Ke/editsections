@@ -31,7 +31,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 			// 2009 or earlier version
 			$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections_legacy');
 		}
-		if ($this->getConf('order_type') == 1) {
+		if ($this->getConf('order_type') === 'nested') {
 			// For the hierarchical type of section editing, 
 			// section values are wrong in the cache. So we disable it with this hook.
 			$controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, '_cache_use');
@@ -67,10 +67,10 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		$last_ind = count($this->sections) - 1;
 		$start = $this->sections[$ind]['start'];
 		$event->data['name'] = $this->sections[$ind]['name'];
-		if ( $order === 0 ) {
+		if ( $order === 'flat') {
 			// flat editing
 			$event->data['range'] = strval($start).'-'.strval($this->sections[$ind]['end']);
-		} elseif ( $order === 1 ) {
+		} elseif ( $order === 'nested' ) {
 			// search end of nested section editing
 			$end_ind = $ind;
 			while ( ($end_ind + 1 <= $last_ind) and ($this->sections[$end_ind + 1]['level'] > $this->sections[$ind]['level']) ) {
@@ -219,7 +219,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
                         $level = $edits[min($i+1,$last)][1][2];
                         $name  = $edits[min($i+1,$last)][1][3];
                         // find the section end point
-                        if ($order) {
+                        if ($order === 'nested') {
                                 $finger = $i+2;
                                 while (isset($edits[$finger]) && $edits[$finger][1][2]>$level) {
                                         $finger++;
