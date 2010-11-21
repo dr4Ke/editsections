@@ -46,6 +46,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
     }
 
     function _editbutton(&$event, $param) {
+	dbglog('HTML_SECEDIT_BUTTON hook', 'editsections plugin');
 	$order = $this->getConf('order_type');
 //dbglog($event->data, 'edit section button data');
 	if (count($this->sections) === 0) {
@@ -96,6 +97,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		}
 	}
 	function rewrite_sections(&$event, $ags) {
+		dbglog('PARSER_HANDLER_DONE hook', 'editsections plugin');
 		// get the instructions list from the handler
 		$calls =& $event->data->calls;
 		$edits = array();
