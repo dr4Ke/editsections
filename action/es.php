@@ -31,7 +31,11 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 			// 2009 or earlier version
 			$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections_legacy');
 		}
-		$controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, '_cache_use');
+		if ($this->getConf('order_type') == 1) {
+			// For the hierarchical type of section editing, 
+			// section values are wrong in the cache. So we disable it with this hook.
+			$controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, '_cache_use');
+		}
 		$controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_addconf');
 	}
 
@@ -77,7 +81,11 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 
 	function _cache_use(&$event, $ags) {
 		dbglog('PARSER_CACHE_USE hook', 'editsections plugin');
-		$event->_default = 0;
+		global $ID;
+		if ( auth_quickaclcheck($ID) >= AUTH_EDIT ) {
+			// disable cache only for writers
+			$event->_default = 0;
+		}
 	}
 	function rewrite_sections(&$event, $ags) {
 		// get the instructions list from the handler
