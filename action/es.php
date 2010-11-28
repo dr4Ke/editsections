@@ -39,10 +39,12 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
     function _addconf(&$event, $ags) {
         // add conf to JSINFO exported variable
         global $JSINFO;
-	if ($this->getConf('cache') === 'disabled') {
-            $JSINFO['es_order_type'] = $this->getConf('order_type');
-        } else {
+	$doku_version = getVersionData();
+	if ( preg_match('/201.-/', $doku_version['date']) > 0  and $this->getConf('cache') === 'enabled') {
+            // dokuwiki >= 2010-11-07 and cache not disabled
             $JSINFO['es_order_type'] = 'flat';
+        } else {
+            $JSINFO['es_order_type'] = $this->getConf('order_type');
         }
     }
 
