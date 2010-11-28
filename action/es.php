@@ -39,7 +39,11 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
     function _addconf(&$event, $ags) {
         // add conf to JSINFO exported variable
         global $JSINFO;
-        $JSINFO['es_order_type'] = $this->getConf('order_type');
+	if ($this->getConf('cache') === 'disabled') {
+            $JSINFO['es_order_type'] = $this->getConf('order_type');
+        } else {
+            $JSINFO['es_order_type'] = 'flat';
+        }
     }
 
     function _editbutton(&$event, $param) {
