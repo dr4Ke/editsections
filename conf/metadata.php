@@ -6,5 +6,6 @@
  */
 
 
+$meta['cache'] = array('multichoice','_choices' => array("enabled","disabled"));
 $meta['order_type'] = array('multichoice','_choices' => array("flat","nested"));
 

@@ -30,9 +30,7 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 			// 2009 or earlier version
 			$controller->register_hook('PARSER_HANDLER_DONE', 'BEFORE', $this, 'rewrite_sections_legacy');
 		}
-		if ($this->getConf('order_type') === 'nested') {
-			// For the hierarchical type of section editing, 
-			// section values are wrong in the cache. So we disable it with this hook.
+		if ($this->getConf('cache') === 'disabled') {
 			$controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, '_cache_use');
 		}
 		$controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_addconf');
