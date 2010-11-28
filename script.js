@@ -26,7 +26,7 @@ addInitEvent(function(){
                             tgtlvl = class_regexp.exec(tgt.tagName)[1];
                         }
                     } else {
-                        if(JSINFO['es_order_type'] == '0'){
+                        if(JSINFO['es_order_type'] == 'flat'){
                             // flat : stop at the next header
                             if (class_regexp.test(tgt.tagName) == true) {
                                 break;
