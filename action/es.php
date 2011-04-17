@@ -105,7 +105,8 @@ class action_plugin_editsections_es extends DokuWiki_Action_Plugin {
 		
 		// fake section inserted in first position in order to have an edit button before the first section
 		$fakesection = array( array( 'header',				// header entry
-		                              array ( ' ',			// juste a space, not shown in the final page
+		                              array ( $calls[0][1][0],		// Reuse original header name because Dokuwiki
+										// may use the first heading for the page name.
 		                                      0,			// level 0 since this is not a real header
 		                                      1),			// start : will be overwritten in the following loop
 		                              1),				// start : will be overwritten in the following loop

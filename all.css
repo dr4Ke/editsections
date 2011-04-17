@@ -19,3 +19,7 @@ body div.dokuwiki div.secedit input.button {
   margin-top: 1.25em;
 }
 
+/* Hiding the header will stop Dokuwiki from displaying special content */
+body div.dokuwiki h0 {
+  display: none;
+}
